@@ -1152,7 +1152,9 @@ $btnApplyKey.Add_Click({
 })
 
 $btnCheckWin.Add_Click({
-     Write-Log "Đang phân tích chuyên sâu tính hợp lệ Office..." "INFO"; Reset-Progress; Set-Progress 50; $txtLicOff.Clear()
+    Reset-Progress
+    Set-Progress 10
+    $txtLicWin.Clear()
     try {
         $report = Get-WindowsLicenseReport
         $txtLicWin.ForeColor = $C.Text
