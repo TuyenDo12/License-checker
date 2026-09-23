@@ -1151,6 +1151,68 @@ $btnApplyKey.Add_Click({
     Write-Log "Đã áp dụng key và kích hoạt." "OK"
 })
 
+//Hàm kiẻm tra windows
+function Convert-LicenseStatus {
+    param([int]$Status)
+    switch($Status)
+    {
+        0 { "Unlicensed" }
+        1 { "Licensed" }
+        2 { "OOB Grace" }
+        3 { "OOT Grace" }
+        4 { "Non-Genuine Grace" }
+        5 { "Notification" }
+        6 { "Extended Grace" }
+        default { "Unknown" }
+    }
+}
+
+function Get-WindowsLicenseReport {
+    $sb = New-Object System.Text.StringBuilder
+    $os = Get-CimInstance Win32_OperatingSystem
+    $lic = Get-CimInstance SoftwareLicensingProduct |
+           Where-Object {
+                $_.ApplicationID -eq "55c92734-d682-4d71-983e-d6ec3f16059f" -and
+                $_.PartialProductKey
+           } |
+           Select-Object -First 1
+    $svc = Get-CimInstance SoftwareLicensingService
+    [void]$sb.AppendLine("===== WINDOWS LICENSE REPORT =====")
+    [void]$sb.AppendLine("")
+    [void]$sb.AppendLine("OS Name        : $($os.Caption)")
+    [void]$sb.AppendLine("Build          : $($os.BuildNumber)")
+    [void]$sb.AppendLine("")
+    if($lic)
+    {
+        [void]$sb.AppendLine("License Status : $(Convert-LicenseStatus $lic.LicenseStatus)")
+        [void]$sb.AppendLine("Partial Key    : $($lic.PartialProductKey)")
+        [void]$sb.AppendLine("Description    : $($lic.Description)")
+        [void]$sb.AppendLine("")
+    
+    if($svc.OA3xOriginalProductKey)
+    {
+        [void]$sb.AppendLine("OEM Key        : $($svc.OA3xOriginalProductKey)")
+    }
+    else
+    {
+        [void]$sb.AppendLine("OEM Key        : Not Present")
+    }
+    return $sb.ToString()
+}
+
+$btnCheckWin.Add_Click({
+
+    try {
+        $txtLicWin.ForeColor = $C.Text
+        $txtLicWin.Text = Get-WindowsLicenseReport
+        Write-Log "Hoàn tất kiểm tra Windows." "OK"
+    }
+    catch {
+        $txtLicWin.ForeColor = $C.Red
+        $txtLicWin.Text = $_.Exception.Message
+        Write-Log "Lỗi kiểm tra Windows." "ERR"
+    }
+})
 $btnCheckWin.Add_Click({
     Reset-Progress
     Set-Progress 10
