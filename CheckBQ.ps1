@@ -1151,7 +1151,7 @@ $btnShowKey.Add_Click({
         Write-Log "Đã lấy Product Key." "OK"
     }
     catch {
-        $txtKeyDisplay.Text = $_.Exception.Message
+        $txtLicWin.Text = $_.InvocationInfo.PositionMessage
         Write-Log $_.Exception.Message "ERR"
     }
 })
