@@ -1096,35 +1096,7 @@ $bkBtns[5].Add_Click({
 # ==============================================================
 #  TAB 5 - BẢN QUYỀN
 # ==============================================================
-#  BẢNG MÀU & HÀM XUẤT GIAO DIỆN
-# =============================================================================
-# Quy ước màu:
-#   Đỏ (Red)      = VI PHẠM / dấu hiệu D1 / cảnh báo nguy hiểm
-#   Vàng (Yellow) = NGHI VẤN / dấu hiệu D2-D3 / lưu ý
-#   Xanh lá(Green)= Sạch / hợp lệ / thành công
-#   Lơ (Cyan)     = Tiêu đề / thông tin
-#   Xám (Gray)    = Chi tiết phụ
-#   Tím (Magenta) = Key / giá trị nhạy cảm
 
-function Write-Title {
-    param([string]$Text)
-    Write-Host ''
-    Write-Host ('=' * 70) -ForegroundColor Cyan
-    Write-Host ("  $Text") -ForegroundColor Cyan
-    Write-Host ('=' * 70) -ForegroundColor Cyan
-}
-function Write-Sub    { param([string]$t) Write-Host ''; Write-Host "  $t" -ForegroundColor White; Write-Host ('  ' + ('-' * 66)) -ForegroundColor DarkGray }
-function Write-Bad    { param([string]$t) Write-Host "  [X] $t" -ForegroundColor Red }
-function Write-Warn   { param([string]$t) Write-Host "  [!] $t" -ForegroundColor Yellow }
-function Write-Good   { param([string]$t) Write-Host "  [+] $t" -ForegroundColor Green }
-function Write-Info   { param([string]$t) Write-Host "  [i] $t" -ForegroundColor Cyan }
-function Write-Dim    { param([string]$t) Write-Host "      $t" -ForegroundColor DarkGray }
-function Write-Plain  { param([string]$t) Write-Host "  $t" -ForegroundColor Gray }
-function Write-KeyVal {
-    param([string]$Label,[string]$Value,[string]$Color = 'White')
-    Write-Host ("  {0,-26}" -f $Label) -ForegroundColor DarkGray -NoNewline
-    Write-Host " $Value" -ForegroundColor $Color
-}
 
 #region --- TAB LICENSE ---
 $gbLicWin=New-GroupCard "BẢN QUYỀN WINDOWS" 5 5 460 215 $C.Blue
@@ -1185,101 +1157,111 @@ $btnApplyKey.Add_Click({
 function Convert-LicenseStatus {
     param([int]$Status)
 
-    switch ($Status) {
-        0 { "Unlicensed" }
-        1 { "Licensed" }
-        2 { "OOB Grace" }
-        3 { "OOT Grace" }
-        4 { "Non-Genuine Grace" }
-        5 { "Notification" }
-        6 { "Extended Grace" }
-        default { "Unknown ($Status)" }
-    }
-}
+[void]$sb.AppendLine("===== WINDOWS INFORMATION =====")
+[void]$sb.AppendLine("")
 
+[void]$sb.AppendLine("Windows Version    : $($os.Caption)")
+[void]$sb.AppendLine("Build Number       : $($os.BuildNumber)")
+[void]$sb.AppendLine("Edition            : $($lic.Name)")
+[void]$sb.AppendLine("")
+}
 function Get-WindowsLicenseReport {
+// Kiểm tra Product key
+[void]$sb.AppendLine("===== PRODUCT KEY =====")
+[void]$sb.AppendLine("")
 
-    try {
-
-        $sb = New-Object System.Text.StringBuilder
-
-        $os = Get-CimInstance Win32_OperatingSystem
-
-        $lic = Get-CimInstance SoftwareLicensingProduct |
-               Where-Object {
-                    $_.ApplicationID -eq "55c92734-d682-4d71-983e-d6ec3f16059f" -and
-                    $_.PartialProductKey
-               } |
-               Select-Object -First 1
-
-        $svc = Get-CimInstance SoftwareLicensingService
-
-        $oemKey = $svc.OA3xOriginalProductKey
-
-        [void]$sb.AppendLine("============================================================")
-        [void]$sb.AppendLine("WINDOWS LICENSE REPORT")
-        [void]$sb.AppendLine("============================================================")
-        [void]$sb.AppendLine("")
-
-        [void]$sb.AppendLine("===== SYSTEM =====")
-        [void]$sb.AppendLine("")
-        [void]$sb.AppendLine("Computer Name : $env:COMPUTERNAME")
-        [void]$sb.AppendLine("OS Name       : $($os.Caption)")
-        [void]$sb.AppendLine("Version       : $($os.Version)")
-        [void]$sb.AppendLine("Build         : $($os.BuildNumber)")
-        [void]$sb.AppendLine("")
-
-        if ($lic) {
-
-            [void]$sb.AppendLine("===== PRODUCT =====")
-            [void]$sb.AppendLine("")
-            [void]$sb.AppendLine("Description   : $($lic.Description)")
-            [void]$sb.AppendLine("Partial Key   : $($lic.PartialProductKey)")
-            [void]$sb.AppendLine("")
-
-            [void]$sb.AppendLine("===== LICENSE =====")
-            [void]$sb.AppendLine("")
-            [void]$sb.AppendLine("Status        : $(Convert-LicenseStatus $lic.LicenseStatus)")
-            [void]$sb.AppendLine("Activation ID : $($lic.ID)")
-            [void]$sb.AppendLine("")
-        }
-
-        [void]$sb.AppendLine("===== OEM =====")
-        [void]$sb.AppendLine("")
-
-        if ($oemKey) {
-            [void]$sb.AppendLine("OEM Key       : $oemKey")
-        }
-        else {
-            [void]$sb.AppendLine("OEM Key       : Not Found")
-        }
-
-        [void]$sb.AppendLine("")
-        [void]$sb.AppendLine("===== SERVICES =====")
-        [void]$sb.AppendLine("")
-
-        $sppsvc = Get-Service sppsvc -ErrorAction SilentlyContinue
-        $clipsvc = Get-Service ClipSVC -ErrorAction SilentlyContinue
-
-        if ($sppsvc) {
-            [void]$sb.AppendLine("sppsvc        : $($sppsvc.Status)")
-        }
-
-        if ($clipsvc) {
-            [void]$sb.AppendLine("ClipSVC       : $($clipsvc.Status)")
-        }
-
-        [void]$sb.AppendLine("")
-        [void]$sb.AppendLine("============================================================")
-
-        return $sb.ToString()
-
-    }
-    catch {
-        return "Lỗi lấy thông tin Windows: $($_.Exception.Message)"
-    }
+if($lic.PartialProductKey)
+{
+    [void]$sb.AppendLine("Partial Product Key : $($lic.PartialProductKey)")
 }
 
+if($lic.ProductKeyChannel)
+{
+    [void]$sb.AppendLine("Product Key Channel : $($lic.ProductKeyChannel)")
+}
+[void]$sb.AppendLine("")
+
+// Kiểm tra OEM/BIOS
+[void]$sb.AppendLine("===== OEM LICENSE =====")
+[void]$sb.AppendLine("")
+if($svc.OA3xOriginalProductKey)
+{
+    [void]$sb.AppendLine("OEM Key Found : YES")
+    [void]$sb.AppendLine("OEM Key       : $($svc.OA3xOriginalProductKey)")
+}
+else
+{
+    [void]$sb.AppendLine("OEM Key Found : NO")
+}
+
+[void]$sb.AppendLine("")
+
+// Kiểm tra KNS
+try {
+    $spp = Get-ItemProperty `
+        "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform" `
+        -ErrorAction Stop
+    [void]$sb.AppendLine("===== KMS CONFIGURATION =====")
+    [void]$sb.AppendLine("")
+    if($spp.KeyManagementServiceName)
+    {
+        [void]$sb.AppendLine("KMS Host : $($spp.KeyManagementServiceName)")
+    }
+    else
+    {
+        [void]$sb.AppendLine("KMS Host : Not Configured")
+    }
+
+    if($spp.KeyManagementServicePort)
+    {
+        [void]$sb.AppendLine("KMS Port : $($spp.KeyManagementServicePort)")
+    }
+    else
+    {
+        [void]$sb.AppendLine("KMS Port : Default")
+    }
+    [void]$sb.AppendLine("")
+}
+catch
+{
+    [void]$sb.AppendLine("===== KMS CONFIGURATION =====")
+    [void]$sb.AppendLine("Unable to read KMS configuration.")
+    [void]$sb.AppendLine("")
+//Kiểm tra digital
+[void]$sb.AppendLine("===== DIGITAL LICENSE =====")
+[void]$sb.AppendLine("")
+if(
+    $lic.LicenseStatus -eq 1 -and
+    -not $svc.OA3xOriginalProductKey
+)
+{
+    [void]$sb.AppendLine("Digital License : Possible")
+}
+else
+{
+    [void]$sb.AppendLine("Digital License : Unknown")
+}
+
+[void]$sb.AppendLine("")
+
+//Kiẻm tra ket=y đây đủ (Bios nếu có)
+[void]$sb.AppendLine("===== FULL KEY =====")
+[void]$sb.AppendLine("")
+
+if($svc.OA3xOriginalProductKey)
+{
+    [void]$sb.AppendLine($svc.OA3xOriginalProductKey)
+}
+else
+{
+    [void]$sb.AppendLine("No OEM Key Available")
+}
+    
+}}
+
+
+
+// Chọn nút kiểm tra
 $btnCheckWin.Add_Click({
     try {
         Reset-Progress
