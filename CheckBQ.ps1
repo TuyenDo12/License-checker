@@ -1,116 +1,136 @@
-#RequireAdmin
-#include <GUIConstantsEx.au3>
-#include <WindowsConstants.au3>
-#include <EditConstants.au3>
-#include <StaticConstants.au3>
+# =============================================================================
+#  WinLicCheck_GUI.ps1  --  Giao diện Windows Forms cho WinLicCheck
+# =============================================================================
 
-Opt("GUIOnEventMode", 1)
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
 
-Global $hMainGUI, $idEditDetails, $idBtnScan, $idBtnFix, $idStatusLabel
+# --- CẤU HÌNH GIAO DIỆN CHÍNH (DARK MODE) ---
+$form = New-Object System.Windows.Forms.Form
+$form.Text = "VST - Win & Office License Checker (WinLicCheck Engine)"
+$form.Size = New-Object System.Drawing.Size(920, 560)$form.StartPosition = "CenterScreen"
+$form.BackColor = [System.Drawing.Color]::FromArgb(30, 30, 30)$form.FormBorderStyle = "FixedSingle"
+$form.MaximizeBox =$false
 
-; --- TẠO GIAO DIỆN CHÍNH (RỘNG HƠN ĐỂ CHỨA KHUNG BÊN PHẢI) ---
-$hMainGUI = GUICreate("VST - Win & Office License Checker (WinLicCheck Engine)", 900, 520, -1, -1, BitOR($WS_MINIMIZEBOX, $WS_CAPTION, $WS_SYSMENU))
-GUISetBkColor(0x1E1E1E, $hMainGUI) ; Dark Mode Style
+# --- KHUNG BÊN TRÁI: ĐIỀU KHIỂN & THAO TÁC ---
+$groupLeft = New-Object System.Windows.Forms.GroupBox
+$groupLeft.Text = " Thao tác Bản quyền "
+$groupLeft.ForeColor = [System.Drawing.Color]::White
+$groupLeft.Location = New-Object System.Drawing.Point(15, 10)$groupLeft.Size = New-Object System.Drawing.Size(360, 490)
+$form.Controls.Add($groupLeft)
 
-; --- BÊN TRÁI: KHU VỰC ĐIỀU KHIỂN & CHỨC NĂNG (Width: 380) ---
-GUICtrlCreateGroup(" Thao tác Bản quyền ", 15, 10, 360, 460)
-GUICtrlSetColor(-1, 0xFFFFFF)
+# Nhãn trạng thái
+$lblStatus = New-Object System.Windows.Forms.Label
+$lblStatus.Text = "Trạng thái: Sẵn sàng rà quét..."
+$lblStatus.ForeColor = [System.Drawing.Color]::FromArgb(0, 255, 0)$lblStatus.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+$lblStatus.Location = New-Object System.Drawing.Point(20, 30)$lblStatus.Size = New-Object System.Drawing.Size(320, 30)
+$groupLeft.Controls.Add($lblStatus)
 
-$idStatusLabel = GUICtrlCreateLabel("Trạng thái: Sẵn sàng rà quét...", 30, 40, 330, 30)
-GUICtrlSetColor(-1, 0x00FF00)
-GUICtrlSetFont(-1, 10, 800, 0, "Segoe UI")
+# Nút 1: Rà quét
+$btnScan = New-Object System.Windows.Forms.Button
+$btnScan.Text = "1. Rà quét & Phân tích (WinLicCheck)"
+$btnScan.BackColor = [System.Drawing.Color]::FromArgb(45, 45, 48)
+$btnScan.ForeColor = [System.Drawing.Color]::White$btnScan.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+$btnScan.Location = New-Object System.Drawing.Point(20, 75)
+$btnScan.Size = New-Object System.Drawing.Size(320, 45)$btnScan.FlatStyle = "Flat"
+$groupLeft.Controls.Add($btnScan)
 
-$idBtnScan = GUICtrlCreateButton("1. Rà quét & Phân tích (WinLicCheck)", 30, 85, 330, 45)
-GUICtrlSetFont(-1, 10, 600, 0, "Segoe UI")
-GUICtrlSetOnEvent($idBtnScan, "OnScanLicCheck")
+# Nút 2: Gỡ bỏ Crack & Khôi phục
+$btnFix = New-Object System.Windows.Forms.Button
+$btnFix.Text = "2. Gỡ bỏ Crack & Khôi phục Key OEM"
+$btnFix.BackColor = [System.Drawing.Color]::FromArgb(45, 45, 48)
+$btnFix.ForeColor = [System.Drawing.Color]::White$btnFix.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold)
+$btnFix.Location = New-Object System.Drawing.Point(20, 130)
+$btnFix.Size = New-Object System.Drawing.Size(320, 45)$btnFix.FlatStyle = "Flat"
+$groupLeft.Controls.Add($btnFix)
 
-$idBtnFix = GUICtrlCreateButton("2. Gỡ bỏ Crack & Khôi phục Key OEM", 30, 140, 330, 45)
-GUICtrlSetFont(-1, 10, 600, 0, "Segoe UI")
-GUICtrlSetOnEvent($idBtnFix, "OnFixLicCheck")
+# Thông tin tham chiếu
+$lblRef = New-Object System.Windows.Forms.Label
+$lblRef.Text = "Nguồn Script Rà quét:"
+$lblRef.ForeColor = [System.Drawing.Color]::FromArgb(170, 170, 170)
+$lblRef.Location = New-Object System.Drawing.Point(20, 430)$lblRef.Size = New-Object System.Drawing.Size(320, 20)
+$groupLeft.Controls.Add($lblRef)
 
-; Thông tin liên hệ & Link tham chiếu
-GUICtrlCreateLabel("Nguồn Script Rà quét:", 30, 410, 330, 20)
-GUICtrlSetColor(-1, 0xAAAAAA)
-$idLink = GUICtrlCreateLabel("khanggiaphuc.com/win", 30, 430, 330, 25)
-GUICtrlSetColor(-1, 0x00A2ED)
-GUICtrlSetFont(-1, 10, 800, 4, "Segoe UI")
+$lblLink = New-Object System.Windows.Forms.Label
+$lblLink.Text = "khanggiaphuc.com/win"
+$lblLink.ForeColor = [System.Drawing.Color]::FromArgb(0, 162, 237)$lblLink.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Bold -bor [System.Drawing.FontStyle]::Underline)
+$lblLink.Location = New-Object System.Drawing.Point(20, 450)$lblLink.Size = New-Object System.Drawing.Size(320, 25)
+$groupLeft.Controls.Add($lblLink)
 
-; --- BÊN PHẢI: KHUNG MÔ TẢ CHI TIẾT (Width: 480) ---
-GUICtrlCreateGroup(" Chi tiết Bản quyền & Dấu vết Can thiệp ", 390, 10, 495, 460)
-GUICtrlSetColor(-1, 0xFFFFFF)
+# --- KHUNG BÊN PHẢI: BẢNG MÔ TẢ CHI TIẾT ---
+$groupRight = New-Object System.Windows.Forms.GroupBox
+$groupRight.Text = " Chi tiết Bản quyền & Dấu vết Can thiệp "
+$groupRight.ForeColor = [System.Drawing.Color]::White
+$groupRight.Location = New-Object System.Drawing.Point(390, 10)$groupRight.Size = New-Object System.Drawing.Size(495, 490)
+$form.Controls.Add($groupRight)
 
-$idEditDetails = GUICtrlCreateEdit("", 400, 35, 475, 425, BitOR($ES_MULTILINE, $ES_READONLY, $WS_VSCROLL))
-GUICtrlSetBkColor(-1, 0x121212)
-GUICtrlSetColor(-1, 0x00FF66) ; Màu chữ terminal xanh lá
-GUICtrlSetFont(-1, 9, 400, 0, "Consolas")
+$txtDetails = New-Object System.Windows.Forms.TextBox
+$txtDetails.Multiline = $true$txtDetails.ReadOnly = $true$txtDetails.ScrollBars = "Vertical"
+$txtDetails.BackColor = [System.Drawing.Color]::FromArgb(18, 18, 18)
+$txtDetails.ForeColor = [System.Drawing.Color]::FromArgb(0, 255, 102)$txtDetails.Font = New-Object System.Drawing.Font("Consolas", 9)
+$txtDetails.Location = New-Object System.Drawing.Point(15, 25)
+$txtDetails.Size = New-Object System.Drawing.Size(465, 450)$txtDetails.Text = @"
+=== BẢNG THÔNG TIN MÔ TẢ CHI TIẾT ===
+Nhấn nút '1. Rà quét & Phân tích' để bắt đầu kiểm tra bằng WinLicCheck.ps1...
 
-GUICtrlSetData($idEditDetails, "=== BẢNG THÔNG TIN MÔ TẢ CHI TIẾT ===" & @CRLF & _
-        "Nhấn nút '1. Rà quét & Phân tích' để bắt đầu chạy kiểm tra độc lập bằng WinLicCheck.ps1..." & @CRLF & @CRLF & _
-        "Kết quả rà quét bao gồm:" & @CRLF & _
-        " - Trạng thái kích hoạt Windows 10/11 & Office" & @CRLF & _
-        " - Phát hiện Server KMS lậu, Task ẩn, AAct, MAS" & @CRLF & _
-        " - Đọc Key OEM từ BIOS (MSDM)" & @CRLF & _
-        " - Kiểm tra vết can thiệp lịch sử PowerShell/Registry")
+Kết quả rà quét bao gồm:
+ - Trạng thái kích hoạt Windows 10/11 & Office
+ - Phát hiện Server KMS lậu, Task ẩn, AAct, MAS, TSforge
+ - Đọc Key OEM gốc từ BIOS (MSDM)
+ - Kiểm tra vết can thiệp lịch sử PowerShell/Registry
+"@
+$groupRight.Controls.Add($txtDetails)
 
-GUISetOnEvent($GUI_EVENT_CLOSE, "OnCloseApp")
-GUISetState(@SW_SHOW, $hMainGUI)
+# --- LOGIC XỬ LÝ SỰ KIỆN ---
 
-; --- VÒNG LẶP CHÍNH ---
-While 1
-    Sleep(100)
-WEnd
+# 1. Sự kiện Rà quét
+$btnScan.Add_Click({$lblStatus.Text = "Trạng thái: Đang rà quét..."
+    $lblStatus.ForeColor = [System.Drawing.Color]::Yellow$txtDetails.Text = "[*] Đang khởi chạy engine rà quét WinLicCheck.ps1...`r`nVui lòng chờ trong giây lát...`r`n"
+    $form.Refresh()
 
-; --- XỬ LÝ SỰ KIỆN RÀ QUÉT ---
-Func OnScanLicCheck()
-    GUICtrlSetData($idStatusLabel, "Trạng thái: Đang rà quét hệ thống...")
-    GUICtrlSetColor($idStatusLabel, 0xFFFF00)
-    GUICtrlSetData($idEditDetails, "[*] Đang khởi chạy WinLicCheck.ps1..." & @CRLF & "Vui lòng chờ trong giây lát...")
-
-    Local $sScriptPath = @ScriptDir & "\WinLicCheck.ps1"
+    $scriptPath = Join-Path$PSScriptRoot "WinLicCheck.ps1"
     
-    ; Tự động tải script nếu chưa có sẵn ở thư mục làm việc
-    If Not FileExists($sScriptPath) Then
-        GUICtrlSetData($idEditDetails, "[*] Đang tải WinLicCheck.ps1 từ nguồn bảo mật..." & @CRLF)
-        InetGet("https://raw.githubusercontent.com/tiennnict/license.info.vn/main/WinLicCheck.ps1", $sScriptPath, 1, 0)
-    EndIf
+    # Tự động tải script gốc nếu chưa có sẵn trong cùng thư mục
+    if (-not (Test-Path $scriptPath)) {$txtDetails.AppendText("[*] Chưa tìm thấy WinLicCheck.ps1 cục bộ, đang tải bản gốc từ GitHub...`r`n")
+        try {
+            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/tiennnict/license.info.vn/main/WinLicCheck.ps1" -OutFile $scriptPath
+        } catch {
+            $txtDetails.AppendText("[ERROR] Không thể tải WinLicCheck.ps1 từ mạng.`r`n")
+            $lblStatus.Text = "Trạng thái: Lỗi tải script!"
+            $lblStatus.ForeColor = [System.Drawing.Color]::Red
+            return
+        }
+    }
 
-    ; Gọi PowerShell thực thi rà quét và ghi Output ra tệp tạm
-    Local $sOutFile = @TempDir & "\WinLic_Result.log"
-    Local $sPSCmd = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& {& ''' & $sScriptPath & '''} | Out-File -FilePath ''' & $sOutFile & ''' -Encoding utf8"'
-    
-    RunWait($sPSCmd, "", @SW_HIDE)
+    # Chạy rà quét và lấy output hiển thị trực tiếp lên Textbox bên phải
+    try {
+        $output = powershell -NoProfile -ExecutionPolicy Bypass -File $scriptPath 2>&1 \vert{} Out-String$txtDetails.Text = $output$lblStatus.Text = "Trạng thái: Đã hoàn tất rà quét!"
+        $lblStatus.ForeColor = [System.Drawing.Color]::FromArgb(0, 255, 0)     } catch {$txtDetails.Text = "[ERROR] Lỗi khi thực thi script:`r`n$_"
+        $lblStatus.Text = "Trạng thái: Lỗi thực thi!"
+        $lblStatus.ForeColor = [System.Drawing.Color]::Red
+    }
+})
 
-    ; Đọc và hiển thị kết quả lên khung mô tả bên phải
-    If FileExists($sOutFile) Then
-        Local $sResult = FileRead($sOutFile)
-        GUICtrlSetData($idEditDetails, $sResult)
-        GUICtrlSetData($idStatusLabel, "Trạng thái: Đã hoàn tất rà quét!")
-        GUICtrlSetColor($idStatusLabel, 0x00FF00)
-        FileDelete($sOutFile)
-    Else
-        GUICtrlSetData($idEditDetails, "[ERROR] Không thể lấy dữ liệu rà quét từ PowerShell.")
-        GUICtrlSetData($idStatusLabel, "Trạng thái: Lỗi rà quét!")
-        GUICtrlSetColor($idStatusLabel, 0xFF0000)
-    EndIf
-EndFunc
+# 2. Sự kiện Gỡ bỏ & Khôi phục
+$btnFix.Add_Click({$confirm = [System.Windows.Forms.MessageBox]::Show(
+        "Bạn có chắc chắn muốn mở trình xử lý gỡ bỏ Crack và khôi phục Key OEM không?", 
+        "Xác nhận gỡ bỏ", 
+        [System.Windows.Forms.MessageBoxButtons]::YesNo, 
+        [System.Windows.Forms.MessageBoxIcon]::Warning
+    )
 
-; --- XỬ LÝ SỰ KIỆN GỠ BỎ CRACK ---
-Func OnFixLicCheck()
-    Local $iConfirm = MsgBox(36, "Xác nhận", "Bạn có chắc chắn muốn gỡ bỏ toàn bộ dấu vết Crack và kích hoạt lại bằng Key hợp lệ không?")
-    If $iConfirm = 6 Then
-        GUICtrlSetData($idStatusLabel, "Trạng thái: Đang gỡ bỏ & dọn dẹp...")
-        GUICtrlSetColor($idStatusLabel, 0xFF9900)
+    if ($confirm -eq [System.Windows.Forms.DialogResult]::Yes) {$lblStatus.Text = "Trạng thái: Đang mở luồng gỡ bỏ..."
+        $lblStatus.ForeColor = [System.Drawing.Color]::Orange
         
-        ; Mở cửa sổ Console PowerShell trực tiếp để người dùng tương tác các bước gỡ bỏ (nhập từ khóa GOBO/DON nếu cần)
-        Local $sScriptPath = @ScriptDir & "\WinLicCheck.ps1"
-        Local $sPSCmd = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' & $sScriptPath & '"'
-        RunWait($sPSCmd, "", @SW_SHOW)
+        $scriptPath = Join-Path$PSScriptRoot "WinLicCheck.ps1"
+        
+        # Mở cửa sổ Console PowerShell tương tác để người dùng nhập từ khóa xác nhận (GOBO, DON, TAITAO)
+        Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" -Verb RunAs -Wait
 
-        GUICtrlSetData($idStatusLabel, "Trạng thái: Đã hoàn tất xử lý!")
-        GUICtrlSetColor($idStatusLabel, 0x00FF00)
-    EndIf
-EndFunc
+        $lblStatus.Text = "Trạng thái: Đã hoàn tất luồng xử lý!"
+        $lblStatus.ForeColor = [System.Drawing.Color]::FromArgb(0, 255, 0)
+    }
+})
 
-Func OnCloseApp()
-    Exit
-EndFunc
+# --- HIỂN THỊ GIAO DIỆN ---
+[void]$form.ShowDialog()
