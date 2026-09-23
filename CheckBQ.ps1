@@ -1148,8 +1148,8 @@ $btnCopyKey.Add_Click({
 $btnApplyKey.Add_Click({
     $k=$txtNewKey.Text.Trim()
     if ($k -notmatch '^\w{5}-\w{5}-\w{5}-\w{5}-\w{5}$') { Write-Log "Key không đúng định dạng XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" "WARN"; return }
-    Start-Process "slmgr.vbs" -ArgumentList "/ipk $k" -Wait
-    Start-Process "slmgr.vbs" -ArgumentList "/ato"
+    Start-Process "slmgr/dli" -ArgumentList "/ipk $k" -Wait
+    Start-Process "slmgr/dli" -ArgumentList "/ato"
     Write-Log "Đã áp dụng key và kích hoạt." "OK"
 })
 
