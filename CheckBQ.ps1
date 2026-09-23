@@ -1166,99 +1166,111 @@ function Convert-LicenseStatus {
 [void]$sb.AppendLine("")
 }
 function Get-WindowsLicenseReport {
-# Kiểm tra Product key
-[void]$sb.AppendLine("===== PRODUCT KEY =====")
-[void]$sb.AppendLine("")
 
-if($lic.PartialProductKey)
-{
-    [void]$sb.AppendLine("Partial Product Key : $($lic.PartialProductKey)")
-}
+    $sb = New-Object System.Text.StringBuilder
 
-if($lic.ProductKeyChannel)
-{
-    [void]$sb.AppendLine("Product Key Channel : $($lic.ProductKeyChannel)")
-}
-[void]$sb.AppendLine("")
+    $lic = Get-CimInstance SoftwareLicensingProduct |
+           Where-Object {
+                $_.ApplicationID -eq "55c92734-d682-4d71-983e-d6ec3f16059f"
+           } |
+           Select-Object -First 1
 
-//Kiểm tra OEM/BIOS
-[void]$sb.AppendLine("===== OEM LICENSE =====")
-[void]$sb.AppendLine("")
-if($svc.OA3xOriginalProductKey)
-{
-    [void]$sb.AppendLine("OEM Key Found : YES")
-    [void]$sb.AppendLine("OEM Key       : $($svc.OA3xOriginalProductKey)")
-}
-else
-{
-    [void]$sb.AppendLine("OEM Key Found : NO")
-}
+    $svc = Get-CimInstance SoftwareLicensingService
 
-[void]$sb.AppendLine("")
-
-# Kiểm tra KNS
-try {
-    $spp = Get-ItemProperty `
-        "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform" `
-        -ErrorAction Stop
-    [void]$sb.AppendLine("===== KMS CONFIGURATION =====")
+    # PRODUCT KEY
+    [void]$sb.AppendLine("===== PRODUCT KEY =====")
     [void]$sb.AppendLine("")
-    if($spp.KeyManagementServiceName)
+
+    if($lic -and $lic.PartialProductKey)
     {
-        [void]$sb.AppendLine("KMS Host : $($spp.KeyManagementServiceName)")
+        [void]$sb.AppendLine("Partial Product Key : $($lic.PartialProductKey)")
+    }
+
+    if($lic -and $lic.PSObject.Properties["ProductKeyChannel"])
+    {
+        [void]$sb.AppendLine("Product Key Channel : $($lic.ProductKeyChannel)")
+    }
+
+    [void]$sb.AppendLine("")
+
+    # OEM
+    [void]$sb.AppendLine("===== OEM LICENSE =====")
+    [void]$sb.AppendLine("")
+
+    if($svc -and $svc.OA3xOriginalProductKey)
+    {
+        [void]$sb.AppendLine("OEM Key Found : YES")
+        [void]$sb.AppendLine("OEM Key       : $($svc.OA3xOriginalProductKey)")
     }
     else
     {
-        [void]$sb.AppendLine("KMS Host : Not Configured")
+        [void]$sb.AppendLine("OEM Key Found : NO")
     }
 
-    if($spp.KeyManagementServicePort)
+    [void]$sb.AppendLine("")
+
+    # KMS
+    try {
+
+        $spp = Get-ItemProperty `
+            "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform" `
+            -ErrorAction Stop
+
+        [void]$sb.AppendLine("===== KMS CONFIGURATION =====")
+
+        if($spp.KeyManagementServiceName)
+        {
+            [void]$sb.AppendLine("KMS Host : $($spp.KeyManagementServiceName)")
+        }
+        else
+        {
+            [void]$sb.AppendLine("KMS Host : Not Configured")
+        }
+
+        if($spp.KeyManagementServicePort)
+        {
+            [void]$sb.AppendLine("KMS Port : $($spp.KeyManagementServicePort)")
+        }
+        else
+        {
+            [void]$sb.AppendLine("KMS Port : Default")
+        }
+    }
+    catch
     {
-        [void]$sb.AppendLine("KMS Port : $($spp.KeyManagementServicePort)")
+        [void]$sb.AppendLine("Unable to read KMS configuration.")
+    }
+
+    [void]$sb.AppendLine("")
+
+    # DIGITAL LICENSE
+    [void]$sb.AppendLine("===== DIGITAL LICENSE =====")
+
+    if($lic -and $lic.LicenseStatus -eq 1 -and -not $svc.OA3xOriginalProductKey)
+    {
+        [void]$sb.AppendLine("Digital License : Possible")
     }
     else
     {
-        [void]$sb.AppendLine("KMS Port : Default")
+        [void]$sb.AppendLine("Digital License : Unknown")
     }
+
     [void]$sb.AppendLine("")
-}
-catch
-{
-    [void]$sb.AppendLine("===== KMS CONFIGURATION =====")
-    [void]$sb.AppendLine("Unable to read KMS configuration.")
-    [void]$sb.AppendLine("")
-//Kiểm tra digital
-[void]$sb.AppendLine("===== DIGITAL LICENSE =====")
-[void]$sb.AppendLine("")
-if(
-    $lic.LicenseStatus -eq 1 -and
-    -not $svc.OA3xOriginalProductKey
-)
-{
-    [void]$sb.AppendLine("Digital License : Possible")
-}
-else
-{
-    [void]$sb.AppendLine("Digital License : Unknown")
-}
 
-[void]$sb.AppendLine("")
+    # FULL KEY
+    [void]$sb.AppendLine("===== FULL KEY =====")
 
-# Kiẻm tra key đây đủ (Bios nếu có)
-[void]$sb.AppendLine("===== FULL KEY =====")
-[void]$sb.AppendLine("")
+    if($svc -and $svc.OA3xOriginalProductKey)
+    {
+        [void]$sb.AppendLine($svc.OA3xOriginalProductKey)
+    }
+    else
+    {
+        [void]$sb.AppendLine("No OEM Key Available")
+    }
 
-if($svc.OA3xOriginalProductKey)
-{
-    [void]$sb.AppendLine($svc.OA3xOriginalProductKey)
+    return $sb.ToString()
 }
-else
-{
-    [void]$sb.AppendLine("No OEM Key Available")
-}
-    
-}}
-
 
 # Chọn nút kiểm tra
 $btnCheckWin.Add_Click({
