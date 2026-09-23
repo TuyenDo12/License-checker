@@ -1137,21 +1137,26 @@ $gbKey.Controls.AddRange(@($btnShowKey,$btnCopyKey,$txtNewKey,$btnApplyKey))
 
 # Giải mã Product key
 $btnShowKey.Add_Click({
-
     try {
-        $key = (Get-CimInstance SoftwareLicensingService).OA3xOriginalProductKey
-        if([string]::IsNullOrWhiteSpace($key))
+        $lic = Get-CimInstance SoftwareLicensingProduct |
+               Where-Object {
+                    $_.ApplicationID -eq "55c92734-d682-4d71-983e-d6ec3f16059f" -and
+                    $_.PartialProductKey
+               } |
+               Select-Object -First 1
+        if($lic)
         {
-            $txtKeyDisplay.Text = "Không tìm thấy Product Key"
+            $txtKeyDisplay.Text =
+                "Channel: $($lic.ProductKeyChannel) | Last 5: $($lic.PartialProductKey)"
         }
         else
         {
-            $txtKeyDisplay.Text = $key
+            $txtKeyDisplay.Text = "Không lấy được thông tin bản quyền hiện tại."
         }
-        Write-Log "Đã lấy Product Key." "OK"
+        Write-Log "Đã lấy thông tin bản quyền hiện tại." "OK"
     }
     catch {
-        $txtLicWin.Text = $_.InvocationInfo.PositionMessage
+        $txtKeyDisplay.Text = $_.Exception.Message
         Write-Log $_.Exception.Message "ERR"
     }
 })
