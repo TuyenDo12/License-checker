@@ -1096,6 +1096,36 @@ $bkBtns[5].Add_Click({
 # ==============================================================
 #  TAB 5 - BẢN QUYỀN
 # ==============================================================
+#  BẢNG MÀU & HÀM XUẤT GIAO DIỆN
+# =============================================================================
+# Quy ước màu:
+#   Đỏ (Red)      = VI PHẠM / dấu hiệu D1 / cảnh báo nguy hiểm
+#   Vàng (Yellow) = NGHI VẤN / dấu hiệu D2-D3 / lưu ý
+#   Xanh lá(Green)= Sạch / hợp lệ / thành công
+#   Lơ (Cyan)     = Tiêu đề / thông tin
+#   Xám (Gray)    = Chi tiết phụ
+#   Tím (Magenta) = Key / giá trị nhạy cảm
+
+function Write-Title {
+    param([string]$Text)
+    Write-Host ''
+    Write-Host ('=' * 70) -ForegroundColor Cyan
+    Write-Host ("  $Text") -ForegroundColor Cyan
+    Write-Host ('=' * 70) -ForegroundColor Cyan
+}
+function Write-Sub    { param([string]$t) Write-Host ''; Write-Host "  $t" -ForegroundColor White; Write-Host ('  ' + ('-' * 66)) -ForegroundColor DarkGray }
+function Write-Bad    { param([string]$t) Write-Host "  [X] $t" -ForegroundColor Red }
+function Write-Warn   { param([string]$t) Write-Host "  [!] $t" -ForegroundColor Yellow }
+function Write-Good   { param([string]$t) Write-Host "  [+] $t" -ForegroundColor Green }
+function Write-Info   { param([string]$t) Write-Host "  [i] $t" -ForegroundColor Cyan }
+function Write-Dim    { param([string]$t) Write-Host "      $t" -ForegroundColor DarkGray }
+function Write-Plain  { param([string]$t) Write-Host "  $t" -ForegroundColor Gray }
+function Write-KeyVal {
+    param([string]$Label,[string]$Value,[string]$Color = 'White')
+    Write-Host ("  {0,-26}" -f $Label) -ForegroundColor DarkGray -NoNewline
+    Write-Host " $Value" -ForegroundColor $Color
+}
+
 #region --- TAB LICENSE ---
 $gbLicWin=New-GroupCard "BẢN QUYỀN WINDOWS" 5 5 460 215 $C.Blue
 $tabLicense.Controls.Add($gbLicWin)
