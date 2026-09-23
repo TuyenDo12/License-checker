@@ -1137,22 +1137,14 @@ $gbKey.Controls.AddRange(@($btnShowKey,$btnCopyKey,$txtNewKey,$btnApplyKey))
 
 $btnShowKey.Add_Click({
     try {
-        $key=(Get-WmiObject SoftwareLicensingService).OA3xOriginalProductKey
-        if (-not $key) { $key="(Không tìm thấy key OEM - máy dùng KMS hoặc Digital License)" }
-        $txtKeyDisplay.Text=$key; Write-Log "Hiển thị Product Key." "OK"
-    } catch { $txtKeyDisplay.Text="Không thể lấy key."; Write-Log "Lỗi lấy Product Key." "ERR" }
+        $txtKeyDisplay.Text = Get-WindowsProductKey
+        Write-Log "Đã lấy Product Key hiện tại." "OK"
+    }
+    catch {
+        $txtKeyDisplay.Text = "Không thể lấy Product Key."
+        Write-Log "Lỗi lấy Product Key." "ERR"
+    }
 })
-$btnCopyKey.Add_Click({
-    if ($txtKeyDisplay.Text) { [System.Windows.Forms.Clipboard]::SetText($txtKeyDisplay.Text); Write-Log "Đã sao chép Product Key." "OK" }
-})
-$btnApplyKey.Add_Click({
-    $k=$txtNewKey.Text.Trim()
-    if ($k -notmatch '^\w{5}-\w{5}-\w{5}-\w{5}-\w{5}$') { Write-Log "Key không đúng định dạng XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" "WARN"; return }
-    Start-Process "slmgr/dli" -ArgumentList "/ipk $k" -Wait
-    Start-Process "slmgr/dli" -ArgumentList "/ato"
-    Write-Log "Đã áp dụng key và kích hoạt." "OK"
-})
-
 
 function Convert-LicenseStatus {
     param([int]$Status)
