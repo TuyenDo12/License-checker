@@ -1240,7 +1240,7 @@ $btnCheckWin.Add_Click({
 })
 
 # ==============================================================
-#  2. SỰ KIỆN KIỂM TRA BẢN QUYỀN & LẤY KEY OFFICE
+#  2. SỰ KIỆN KIỂM TRA BẢN QUYỀN & LẤY KEY OFFICE (ĐÃ SỬA LỖI SYNTAX)
 # ==============================================================
 $btnCheckOff.Add_Click({
     $lblLicResultHeader.Text = "KẾT QUẢ KIỂM TRA CHI TIẾT BẢN QUYỀN MICROSOFT OFFICE:"
@@ -1275,7 +1275,6 @@ $btnCheckOff.Add_Click({
         if ($osppPath) {
             $offResult = cscript //NoLogo "$osppPath" /dstatus 2>&1 | Out-String
             
-            # Lấy 5 ký tự đuôi của Key Office từ đầu ra ospp.vbs
             $offKeyMatches = [regex]::Matches($offResult, "Last 5 characters of installed product key:\s*([A-Z0-9]{5})")
             $offKeys = @()
             foreach ($match in $offKeyMatches) {
@@ -1327,8 +1326,11 @@ $btnCheckOff.Add_Click({
                 Write-Log "Không tìm thấy dữ liệu bản quyền Office!" "WARN"
             }
 
-            $btnCheckWin.Enabled = $true$btnCheckOff.Enabled = $true$timer.Stop()
-            $runspace.Close()$runspace.Dispose()
+            # Bổ sung dấu chấm phẩy (;) để tránh lỗi dính dòng
+            $btnCheckWin.Enabled =$true;
+            $btnCheckOff.Enabled =$true;
+            $timer.Stop();
+            $runspace.Close();$runspace.Dispose();
         }
     })
     $timer.Start()
