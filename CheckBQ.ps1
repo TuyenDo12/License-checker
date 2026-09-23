@@ -1094,272 +1094,206 @@ $bkBtns[5].Add_Click({
 #endregion
 
 # ==============================================================
-#  TAB 5 - KÍCH HOẠT & KIỂM TRA BẢN QUYỀN WINDOWS & OFFICE
+#  TAB 5 - BẢN QUYỀN
 # ==============================================================
 #region --- TAB LICENSE ---
-$gbLic = New-GroupCard "QUẢN LÝ & KÍCH HOẠT BẢN QUYỀN WINDOWS & OFFICE" 5 5 960 435 $C.Purple
-$tabLicense.Controls.Add($gbLic)
+$gbLicWin=New-GroupCard "BẢN QUYỀN WINDOWS" 5 5 460 215 $C.Blue
+$tabLicense.Controls.Add($gbLicWin)
+$txtLicWin=New-Object System.Windows.Forms.RichTextBox
+$txtLicWin.Location=[System.Drawing.Point]::new(10,25); $txtLicWin.Size=[System.Drawing.Size]::new(440,145)
+$txtLicWin.BackColor=$C.BgInput; $txtLicWin.ForeColor=$C.Text; $txtLicWin.Font=$F.Mono; $txtLicWin.ReadOnly=$true; $txtLicWin.BorderStyle="None"
+$txtLicWin.Text="Nhấn [Kiểm Tra Windows] để phân tích sâu tính chính hãng (MAS / KMS Tools)."
+$gbLicWin.Controls.Add($txtLicWin)
+$btnCheckWin=New-StyledButton "Kiểm Tra Windows" 10 178 440 28 $C.Blue
+$gbLicWin.Controls.AddRange(@($btnCheckWin))
 
-$lblLicInfo = New-Label "Công cụ kiểm tra tình trạng kích hoạt chi tiết Windows/Office và tích hợp Microsoft Activation Scripts (MAS)." 15 25 930 20 $C.Text $F.Body
-$gbLic.Controls.Add($lblLicInfo)
+$gbLicOff=New-GroupCard "BẢN QUYỀN MICROSOFT OFFICE" 475 5 495 215 $C.Green
+$tabLicense.Controls.Add($gbLicOff)
+$txtLicOff=New-Object System.Windows.Forms.RichTextBox
+$txtLicOff.Location=[System.Drawing.Point]::new(10,25); $txtLicOff.Size=[System.Drawing.Size]::new(475,145)
+$txtLicOff.BackColor=$C.BgInput; $txtLicOff.ForeColor=$C.Text; $txtLicOff.Font=$F.Mono; $txtLicOff.ReadOnly=$true; $txtLicOff.BorderStyle="None"
+$txtLicOff.Text="Nhấn [Kiểm Tra Office] để tìm kiếm lỗ hổng bẻ khóa (Ohook / KMS server)."
+$gbLicOff.Controls.Add($txtLicOff)
+$btnCheckOff=New-StyledButton "Kiểm Tra Office" 10 178 475 28 $C.GreenDark
+$gbLicOff.Controls.AddRange(@($btnCheckOff))
 
-# --- THANH NÚT THAO TÁC PHÍA TRÊN ---
-$btnCheckWin = New-StyledButton "KIỂM TRA WINDOWS" 15 50 175 40 $C.Accent $C.Bg $F.Btn
-$btnCheckOff = New-StyledButton "KIỂM TRA OFFICE" 200 50 175 40 $C.Green $C.Bg $F.Btn
-$btnActWin   = New-StyledButton "KÍCH HOẠT WIN (HWID)" 385 50 180 40 $C.Purple $C.White $F.Btn
-$btnActOff   = New-StyledButton "KÍCH HOẠT OFFICE (OHOOK)" 575 50 190 40 $C.PurpleDark $C.White $F.Btn
-$btnMAS      = New-StyledButton "MENU MAS (ONLINE)" 775 50 170 40 $C.BgCard $C.Accent $F.Btn
+$gbKey=New-GroupCard "QUẢN LÝ PRODUCT KEY" 5 225 965 215 $C.Orange
+$tabLicense.Controls.Add($gbKey)
+$gbKey.Controls.Add((New-Label "Product Key Windows hiện tại:" 10 30 200 25 $C.TextDim $F.Body "MiddleLeft"))
+$txtKeyDisplay=New-Object System.Windows.Forms.TextBox
+$txtKeyDisplay.Location=[System.Drawing.Point]::new(210,27); $txtKeyDisplay.Size=[System.Drawing.Size]::new(350,25)
+$txtKeyDisplay.BackColor=$C.BgInput; $txtKeyDisplay.ForeColor=$C.Accent; $txtKeyDisplay.Font=$F.Mono; $txtKeyDisplay.ReadOnly=$true
+$gbKey.Controls.Add($txtKeyDisplay)
+$btnShowKey=New-StyledButton "Hiện Key"     570 24 180 28 $C.OrangeDark
+$btnCopyKey=New-StyledButton "Sao Chép Key" 760 24 185 28 $C.BgCard $C.TextDim
+$gbKey.Controls.Add((New-Label "Nhập Key Mới:" 10 70 200 25 $C.TextDim $F.Body "MiddleLeft"))
+$txtNewKey=New-Object System.Windows.Forms.TextBox
+$txtNewKey.Location=[System.Drawing.Point]::new(210,70); $txtNewKey.Size=[System.Drawing.Size]::new(350,25)
+$txtNewKey.BackColor=$C.BgInput; $txtNewKey.ForeColor=$C.Text; $txtNewKey.Font=$F.Mono
+$btnApplyKey=New-StyledButton "Áp Dụng Key" 570 68 180 28 $C.OrangeDark
+$gbKey.Controls.AddRange(@($btnShowKey,$btnCopyKey,$txtNewKey,$btnApplyKey))
 
-$gbLic.Controls.AddRange(@($btnCheckWin, $btnCheckOff, $btnActWin, $btnActOff, $btnMAS))
+$btnShowKey.Add_Click({
+    try {
+        $key=(Get-WmiObject SoftwareLicensingService).OA3xOriginalProductKey
+        if (-not $key) { $key="(Không tìm thấy key OEM - máy dùng KMS hoặc Digital License)" }
+        $txtKeyDisplay.Text=$key; Write-Log "Hiển thị Product Key." "OK"
+    } catch { $txtKeyDisplay.Text="Không thể lấy key."; Write-Log "Lỗi lấy Product Key." "ERR" }
+})
+$btnCopyKey.Add_Click({
+    if ($txtKeyDisplay.Text) { [System.Windows.Forms.Clipboard]::SetText($txtKeyDisplay.Text); Write-Log "Đã sao chép Product Key." "OK" }
+})
+$btnApplyKey.Add_Click({
+    $k=$txtNewKey.Text.Trim()
+    if ($k -notmatch '^\w{5}-\w{5}-\w{5}-\w{5}-\w{5}$') { Write-Log "Key không đúng định dạng XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" "WARN"; return }
+    Start-Process "slmgr.vbs" -ArgumentList "/ipk $k" -Wait
+    Start-Process "slmgr.vbs" -ArgumentList "/ato"
+    Write-Log "Đã áp dụng key và kích hoạt." "OK"
+})
 
-# --- KHUNG HIỂN THỊ TRỰC TIẾP PRODUCT KEY ---
-$lblWinKeyTitle = New-Label "Windows Key:" 15 100 110 25 $C.Accent $F.Header
-$txtWinKey      = New-Object System.Windows.Forms.TextBox
-$txtWinKey.Location = [System.Drawing.Point]::new(130, 98)
-$txtWinKey.Size = [System.Drawing.Size]::new(815, 25)
-$txtWinKey.BackColor = $C.BgInput
-$txtWinKey.ForeColor = $C.Accent
-$txtWinKey.Font = New-Object System.Drawing.Font("Consolas", 10, [System.Drawing.FontStyle]::Bold)
-$txtWinKey.ReadOnly = $true
-$txtWinKey.BorderStyle = "FixedSingle"
-$txtWinKey.Text = "Nhấn 'KIỂM TRA WINDOWS' để lấy Product Key..."
-
-$lblOffKeyTitle = New-Label "Office Key:" 15 132 110 25 $C.Green $F.Header
-$txtOffKey      = New-Object System.Windows.Forms.TextBox
-$txtOffKey.Location = [System.Drawing.Point]::new(130, 130)
-$txtOffKey.Size = [System.Drawing.Size]::new(815, 25)
-$txtOffKey.BackColor = $C.BgInput
-$txtOffKey.ForeColor = $C.Green
-$txtOffKey.Font = New-Object System.Drawing.Font("Consolas", 10, [System.Drawing.FontStyle]::Bold)
-$txtOffKey.ReadOnly = $true
-$txtOffKey.BorderStyle = "FixedSingle"
-$txtOffKey.Text = "Nhấn 'KIỂM TRA OFFICE' để lấy 5 ký tự đuôi Key Office..."
-
-$gbLic.Controls.AddRange(@($lblWinKeyTitle, $txtWinKey, $lblOffKeyTitle, $txtOffKey))
-
-# --- KHUNG HIỂN THỊ KẾT QUẢ KIỂM TRA CHI TIẾT ---
-$lblLicResultHeader = New-Label "KẾT QUẢ KIỂM TRA CHI TIẾT BẢN QUYỀN:" 15 163 500 20 $C.Green $F.Header
-$gbLic.Controls.Add($lblLicResultHeader)
-
-$txtLicResult = New-Object System.Windows.Forms.RichTextBox
-$txtLicResult.Location = [System.Drawing.Point]::new(15, 185)
-$txtLicResult.Size = [System.Drawing.Size]::new(930, 235)
-$txtLicResult.BackColor = $C.BgInput
-$txtLicResult.ForeColor = $C.Green
-$txtLicResult.Font = New-Object System.Drawing.Font("Consolas", 9.5)
-$txtLicResult.ReadOnly = $true
-$txtLicResult.BorderStyle = "None"
-$txtLicResult.Text = "Chọn 'KIỂM TRA WINDOWS' hoặc 'KIỂM TRA OFFICE' phía trên để xem chi tiết thông tin bản quyền..."
-$gbLic.Controls.Add($txtLicResult)
-
-# ==============================================================
-#  1. SỰ KIỆN KIỂM TRA BẢN QUYỀN & LẤY KEY WINDOWS
-# ==============================================================
 $btnCheckWin.Add_Click({
-    $lblLicResultHeader.Text = "KẾT QUẢ KIỂM TRA CHI TIẾT BẢN QUYỀN WINDOWS:";
-    $txtLicResult.ForeColor = $C.Text;
-    $txtLicResult.Text = "Đang truy vấn dữ liệu bản quyền và giải mã Key Windows từ Registry/BIOS... Vui lòng chờ!";
-    $txtWinKey.Text = "Đang quét...";
-    Write-Log "Đang kiểm tra thông tin bản quyền và Product Key Windows..." "INFO";
+    Write-Log "Đang chạy phân tích chuyên sâu tính chính hãng Windows..." "INFO"
+    Reset-Progress; Set-Progress 30; $txtLicWin.Clear()
     
-    $btnCheckWin.Enabled = $false;
-    $btnCheckOff.Enabled = $false;
+    $isGenuine = $true
+    $cheatMethod = New-Object System.Collections.Generic.List[string]
+    $report = New-Object System.Text.StringBuilder
 
-    $runspace = [runspacefactory]::CreateRunspace();
-    $runspace.Open();
-    $pipeline = $runspace.CreatePipeline({
-        $oemKey = (Get-CimInstance -Query "SELECT OA3xOriginalProductKey FROM SoftwareLicensingService").OA3xOriginalProductKey;
-        $wmiProduct = Get-CimInstance SoftwareLicensingProduct | Where-Object { $_.PartialProductKey -and $_.Name -like "*Windows*" } | Select-Object -First 1;
-        $partialKey = if ($wmiProduct) { $wmiProduct.PartialProductKey } else { "N/A" };
-        $regKey = (Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform" -Name "BackupProductKeyDefault" -ErrorAction SilentlyContinue).BackupProductKeyDefault;
+    try {
+        $p = Get-CimInstance SoftwareLicensingProduct | Where-Object { $_.PartialProductKey -and $_.ApplicationID -eq "55c92734-d682-4d71-983e-d6ec3f16059f" } | Select-Object -First 1
+        if ($p) {
+            $statusMap = @{0="Chưa kích hoạt"; 1="Đã kích hoạt hợp lệ"; 2="OOB Grace"; 3="Gia hạn kích hoạt"; 4="Không chính hãng"}
+            [void]$report.AppendLine("Gói hệ thống: $($p.Description)")
+            [void]$report.AppendLine("Partial Key: $($p.PartialProductKey)")
+            [void]$report.AppendLine("Kênh bản quyền: $($p.ProductKeyChannel)")
+            [void]$report.AppendLine("Trạng thái WMI: $($statusMap[[int]$p.LicenseStatus])")
 
-        $winKeyDisplay = "";
-        if ($oemKey) {
-            $winKeyDisplay = "$oemKey (Key OEM từ BIOS)";
-        } elseif ($regKey) {
-            $winKeyDisplay = "$regKey (Key Cài Đặt)";
-        } elseif ($partialKey -ne "N/A") {
-            $winKeyDisplay = "XXXXX-XXXXX-XXXXX-XXXXX-$partialKey (5 ký tự cuối)";
+            $sppPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform"
+            if (Test-Path $sppPath) {
+                $kmsServer = (Get-ItemProperty $sppPath -ErrorAction SilentlyContinue).KeyManagementServiceServer
+                if ($kmsServer) {
+                    [void]$report.AppendLine("Máy chủ KMS đích: $kmsServer")
+                    if ($kmsServer -match "127.0.0.1|localhost|0.0.0.0|::1") {
+                        $isGenuine = $false
+                        $cheatMethod.Add("Giả lập Máy chủ KMS Local (KMS Tools Bypass)")
+                    }
+                }
+            }
+            $kmsServices = @("SECOH-QAD", "KMSEmulator", "KMS-Server", "Service_KMS")
+            foreach ($s in $kmsServices) {
+                if (Get-Service $s -ErrorAction SilentlyContinue) {
+                    $isGenuine = $false
+                    $cheatMethod.Add("Phát hiện Service KMS lậu ngầm chạy nền ($s)")
+                }
+            }
+
+            if ($p.ProductKeyChannel -match "Retail" -and (Get-Service "ClipSVC" -ErrorAction SilentlyContinue).StartType -eq "Disabled") {
+                $isGenuine = $false
+                $cheatMethod.Add("Chặn/Tắt hạ tầng ClipSVC (MAS HWID Script Bypass)")
+            }
+
+            $sppDll = "$env:SystemRoot\System32\sppc.dll"
+            if (Test-Path $sppDll) {
+                $fInfo = Get-Item $sppDll
+                if ($fInfo.VersionInfo.CompanyName -notmatch "Microsoft") {
+                    $isGenuine = $false
+                    $cheatMethod.Add("Tệp xác thực 'sppc.dll' bị can thiệp / Sửa đổi bởi Patches/Loaders")
+                }
+            }
+
+            if (-not $isGenuine) {
+                $txtLicWin.ForeColor = $C.Red
+                [void]$report.AppendLine("`n[XX] CẢNH BÁO: PHÁT HIỆN BẢN QUYỀN GIẢ MẠO!")
+                [void]$report.AppendLine("Phương thức phát hiện lậu:")
+                foreach ($m in $cheatMethod) {
+                    [void]$report.AppendLine("  - $m")
+                }
+                Write-Log "Cảnh báo: Phát hiện Windows bẻ khóa không chính hãng!" "ERR"
+            } else {
+                if ($p.LicenseStatus -eq 1) {
+                    $txtLicWin.ForeColor = $C.LogGreen
+                    [void]$report.AppendLine("`n[OK] CHỨNG NHẬN BẢN QUYỀN CHÍNH HÃNG (GENUINE OS)")
+                    Write-Log "Hệ thống Windows đạt tiêu chuẩn Genuine chính hãng." "OK"
+                } else {
+                    $txtLicWin.ForeColor = $C.LogYellow
+                    [void]$report.AppendLine("`n[>>] Hệ thống chưa hoàn tất cấp phép kích hoạt.")
+                }
+            }
+            $txtLicWin.Text = $report.ToString()
         } else {
-            $winKeyDisplay = "Không tìm thấy Product Key trong Registry/BIOS";
+            $txtLicWin.Text = "Không thể lấy thông tin bản quyền Windows qua WMI."
         }
-
-        $dlv = cscript //NoLogo C:\Windows\System32\slmgr.vbs /dlv 2>&1 | Out-String;
-        
-        $statusStr = switch ($wmiProduct.LicenseStatus) {
-            1 { "Đã kích hoạt hợp lệ (Licensed)" }
-            2 { "Trong thời gian chờ kích hoạt (OOB Grace)" }
-            3 { "Hết hạn thử nghiệm (OOT Grace)" }
-            4 { "Cần kích hoạt lại (Non-Genuine Grace)" }
-            5 { "Thử nghiệm (Notification)" }
-            6 { "Thời gian gia hạn (Extended Grace)" }
-            default { "Chưa kích hoạt hoặc Không xác định" }
-        };
-
-        return @{
-            WinKey     = $winKeyDisplay;
-            StatusText = $statusStr;
-            DetailText = $dlv;
-        };
-    });
-
-    $asyncResult = $pipeline.BeginInvoke();
-
-    $timer = New-Object System.Windows.Forms.Timer;
-    $timer.Interval = 300;
-    $timer.Add_Tick({
-        if ($asyncResult.IsCompleted) {
-            $res = $pipeline.EndInvoke();
-            $txtWinKey.Text = $res.WinKey;
-            
-            $txtLicResult.Clear();
-            $txtLicResult.SelectionColor = $C.Accent;
-            $txtLicResult.AppendText("=== TRẠNG THÁI BẢN QUYỀN WINDOWS: $($res.StatusText) ===`n`n");
-            $txtLicResult.SelectionColor = $C.Green;
-            $txtLicResult.AppendText($res.DetailText);
-            
-            Write-Log "Đã lấy xong thông tin và Key Windows!" "OK";
-            
-            $btnCheckWin.Enabled = $true;
-            $btnCheckOff.Enabled = $true;
-            $timer.Stop();
-            $runspace.Close();
-            $runspace.Dispose();
-        }
-    });
-    $timer.Start();
+    } catch { 
+        $txtLicWin.Text = "Lỗi phân tích: $($_.Exception.Message)"; Write-Log "Lỗi phân tích Genuine Windows." "ERR"
+    }
+    Set-Progress 100
 })
 
-# ==============================================================
-#  2. SỰ KIỆN KIỂM TRA BẢN QUYỀN & LẤY KEY OFFICE
-# ==============================================================
 $btnCheckOff.Add_Click({
-    $lblLicResultHeader.Text = "KẾT QUẢ KIỂM TRA CHI TIẾT BẢN QUYỀN MICROSOFT OFFICE;";
-    $txtLicResult.ForeColor = $C.Text;
-    $txtLicResult.Text = "Đang quét các thư mục cài đặt Microsoft Office và kiểm tra bản quyền (ospp.vbs /dstatus)... Vui lòng chờ!";
-    $txtOffKey.Text = "Đang quét...";
-    Write-Log "Đang kiểm tra thông tin bản quyền và Product Key Office..." "INFO";
+    Write-Log "Đang phân tích chuyên sâu tính hợp lệ Office..." "INFO"; Reset-Progress; Set-Progress 50; $txtLicOff.Clear()
+    
+    $isOfficeGenuine = $true
+    $offCheatMethod = New-Object System.Collections.Generic.List[string]
+    $offReport = New-Object System.Text.StringBuilder
 
-    $btnCheckWin.Enabled = $false;
-    $btnCheckOff.Enabled = $false;
-
-    $runspace = [runspacefactory]::CreateRunspace();
-    $runspace.Open();
-    $pipeline = $runspace.CreatePipeline({
-        $searchPaths = @(
-            "${env:ProgramFiles}\Microsoft Office\Office16\OSPP.VBS",
-            "${env:ProgramFiles(x86)}\Microsoft Office\Office16\OSPP.VBS",
-            "${env:ProgramFiles}\Microsoft Office\Office15\OSPP.VBS",
-            "${env:ProgramFiles(x86)}\Microsoft Office\Office15\OSPP.VBS",
-            "${env:ProgramFiles}\Microsoft Office\Office14\OSPP.VBS",
-            "${env:ProgramFiles(x86)}\Microsoft Office\Office14\OSPP.VBS"
-        );
-
-        $osppPath = $null;
-        foreach ($path in $searchPaths) {
-            if (Test-Path $path) {
-                $osppPath = $path;
-                break;
+    $ifeoPaths = @(
+        "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\osppsvc.exe"
+        "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\osppsvc.exe"
+    )
+    foreach ($path in $ifeoPaths) {
+        if (Test-Path $path) {
+            $val = (Get-ItemProperty $path -ErrorAction SilentlyContinue).VerifierDlls
+            if ($val -match "ohook|sppc") {
+                $isOfficeGenuine = $false
+                $offCheatMethod.Add("Bypass Office Genuine Validation qua Ohook Script (IFEO Injection)")
             }
         }
+    }
 
-        if ($osppPath) {
-            $offResult = cscript //NoLogo "$osppPath" /dstatus 2>&1 | Out-String;
-            $offKeyMatches = [regex]::Matches($offResult, "Last 5 characters of installed product key:\s*([A-Z0-9]{5})");
-            $offKeys = @();
-            foreach ($match in $offKeyMatches) {
-                $offKeys += $match.Groups[1].Value;
-            }
+    $paths=@(
+        "C:\Program Files\Microsoft Office\root\Office16\OSPP.VBS"
+        "C:\Program Files\Microsoft Office\Office16\OSPP.VBS"
+        "C:\Program Files (x86)\Microsoft Office\Office16\OSPP.VBS"
+    )
+    $found=$paths | Where-Object { Test-Path $_ } | Select-Object -First 1
+    
+    if ($found) {
+        $r = cscript.exe //NoLogo $found /dstatus 2>&1
+        $rawText = ($r | Where-Object { $_ -match "LICENSE|PRODUCT|SKU|REMAINING|KMS" }) -join "`n"
+        [void]$offReport.AppendLine($rawText)
+        
+        if ($rawText -match "127.0.0.1|localhost|0.0.0.0|::1") {
+            $isOfficeGenuine = $false
+            $offCheatMethod.Add("Office kết nối tới Máy chủ giả lập KMS Local")
+        }
+    } else {
+        [void]$offReport.AppendLine("Không tìm thấy tệp tin quản trị OSPP.VBS gốc của Microsoft Office.")
+    }
 
-            $keyDisplay = if ($offKeys.Count -gt 0) {
-                "XXXXX-XXXXX-XXXXX-XXXXX-" + ($offKeys -join " | XXXXX-XXXXX-XXXXX-XXXXX-");
-            } else {
-                "Không tìm thấy partial key Office nào đang kích hoạt";
-            };
-
-            return @{
-                Success   = $true;
-                OfficeKey = $keyDisplay;
-                Detail    = $offResult;
-            };
+    if (-not $isOfficeGenuine) {
+        $txtLicOff.ForeColor = $C.Red
+        [void]$offReport.AppendLine("`n[XX] CẢNH BÁO: PHÁT HIỆN BẺ KHÓA OFFICE TRÁI PHÉP!")
+        [void]$offReport.AppendLine("Hình thức bẻ khóa:")
+        foreach ($om in $offCheatMethod) {
+            [void]$offReport.AppendLine("  - $om")
+        }
+        Write-Log "Cảnh báo: Phát hiện Microsoft Office bẻ khóa lậu!" "ERR"
+    } else {
+        if ($found) {
+            $txtLicOff.ForeColor = $C.LogGreen
+            [void]$offReport.AppendLine("`n[OK] MICROSOFT OFFICE CHÍNH HÃNG HỢP LỆ")
+            Write-Log "Hệ thống Office sạch, không phát hiện Ohook/KMS tools." "OK"
         } else {
-            return @{
-                Success   = $false;
-                OfficeKey = "Chưa cài đặt Office hoặc không tìm thấy OSPP.VBS";
-                Detail    = "Không tìm thấy file 'OSPP.VBS' trên hệ thống!`nKhả năng cao máy tính chưa cài đặt Microsoft Office hoặc đang sử dụng phiên bản Office Web/Click-to-Run dạng rút gọn.";
-            };
+            $txtLicOff.ForeColor = $C.TextDim
+            [void]$offReport.AppendLine("`n Không phát hiện bộ cài đặt Office chính thức trên thiết bị.")
         }
-    });
+    }
 
-    $asyncResult =$pipeline.BeginInvoke();
-
-    $timer = New-Object System.Windows.Forms.Timer;
-    $timer.Interval = 300;
-    $timer.Add_Tick({
-        if ($asyncResult.IsCompleted) {
-            $res =$pipeline.EndInvoke();
-            $txtOffKey.Text =$res.OfficeKey;
-            
-            $txtLicResult.Clear();
-            if ($res.Success) {
-                $txtLicResult.SelectionColor =$C.Accent;
-                $txtLicResult.AppendText("=== THÔNG TIN BẢN QUYỀN OFFICE (OSPP.VBS) ===`n`n");
-                $txtLicResult.SelectionColor =$C.Green;
-                $txtLicResult.AppendText($res.Detail);
-                Write-Log "Đã kiểm tra xong thông tin và Key Office!" "OK";
-            } else {
-                $txtLicResult.SelectionColor = [System.Drawing.Color]::Red;
-                $txtLicResult.AppendText("=== KHÔNG TÌM THẤY MICROSOFT OFFICE ===`n`n");
-                $txtLicResult.SelectionColor =$C.Text;
-                $txtLicResult.AppendText($res.Detail);
-                Write-Log "Không tìm thấy dữ liệu bản quyền Office!" "WARN";
-            }
-
-            $btnCheckWin.Enabled =$true;
-            $btnCheckOff.Enabled =$true;
-            $timer.Stop();
-            $runspace.Close();$runspace.Dispose();
-        }
-    });
-    $timer.Start();
-})
-
-# ==============================================================
-#  3. CÁC NÚT KÍCH HOẠT BẢN QUYỀN MÁY TÍNH (MAS)
-# ==============================================================
-$btnActWin.Add_Click({
-    Write-Log "Đang mở kịch bản kích hoạt Digital License Windows qua MAS..." "INFO";
-    Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"irm https://get.activated.win | iex`"";
-})
-
-$btnActOff.Add_Click({
-    Write-Log "Đang mở kịch bản kích hoạt Office (Ohook) qua MAS..." "INFO";
-    Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"irm https://get.activated.win | iex`"";
-})
-
-$btnMAS.Add_Click({
-    Write-Log "Đang kích hoạt Menu tổng MAS (Microsoft Activation Scripts)..." "INFO";
-    Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"irm https://get.activated.win | iex`"";
+    $txtLicOff.Text = $offReport.ToString()
+    Set-Progress 100
 })
 #endregion
-# ==============================================================
-#  3. CÁC NÚT KÍCH HOẠT BẢN QUYỀN MÁY TÍNH (MAS)
-# ==============================================================
-$btnActWin.Add_Click({
-    Write-Log "Đang mở kịch bản kích hoạt Digital License Windows qua MAS..." "INFO";
-    Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"irm https://get.activated.win | iex`"";
-})
 
-$btnActOff.Add_Click({
-    Write-Log "Đang mở kịch bản kích hoạt Office (Ohook) qua MAS..." "INFO";
-    Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"irm https://get.activated.win | iex`"";
-})
-
-$btnMAS.Add_Click({
-    Write-Log "Đang kích hoạt Menu tổng MAS (Microsoft Activation Scripts)..." "INFO";
-    Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"irm https://get.activated.win | iex`"";
-})
-#endregion
 # ==============================================================
 #  TAB 6 - THÔNG TIN ỨNG DỤNG
 # ==============================================================
