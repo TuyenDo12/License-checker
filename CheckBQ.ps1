@@ -1154,8 +1154,8 @@ $btnApplyKey.Add_Click({
 //Hàm kiẻm tra windows
 function Convert-LicenseStatus {
     param([int]$Status)
-    switch($Status)
-    {
+
+    switch ($Status) {
         0 { "Unlicensed" }
         1 { "Licensed" }
         2 { "OOB Grace" }
@@ -1163,48 +1163,101 @@ function Convert-LicenseStatus {
         4 { "Non-Genuine Grace" }
         5 { "Notification" }
         6 { "Extended Grace" }
-        default { "Unknown" }
+        default { "Unknown ($Status)" }
     }
 }
 
 function Get-WindowsLicenseReport {
-    $sb = New-Object System.Text.StringBuilder
-    $os = Get-CimInstance Win32_OperatingSystem
-    $lic = Get-CimInstance SoftwareLicensingProduct |
-           Where-Object {
-                $_.ApplicationID -eq "55c92734-d682-4d71-983e-d6ec3f16059f" -and
-                $_.PartialProductKey
-           } |
-           Select-Object -First 1
-    $svc = Get-CimInstance SoftwareLicensingService
-    [void]$sb.AppendLine("===== WINDOWS LICENSE REPORT =====")
-    [void]$sb.AppendLine("")
-    [void]$sb.AppendLine("OS Name        : $($os.Caption)")
-    [void]$sb.AppendLine("Build          : $($os.BuildNumber)")
-    [void]$sb.AppendLine("")
-    if($lic)
-    {
-        [void]$sb.AppendLine("License Status : $(Convert-LicenseStatus $lic.LicenseStatus)")
-        [void]$sb.AppendLine("Partial Key    : $($lic.PartialProductKey)")
-        [void]$sb.AppendLine("Description    : $($lic.Description)")
+
+    try {
+
+        $sb = New-Object System.Text.StringBuilder
+
+        $os = Get-CimInstance Win32_OperatingSystem
+
+        $lic = Get-CimInstance SoftwareLicensingProduct |
+               Where-Object {
+                    $_.ApplicationID -eq "55c92734-d682-4d71-983e-d6ec3f16059f" -and
+                    $_.PartialProductKey
+               } |
+               Select-Object -First 1
+
+        $svc = Get-CimInstance SoftwareLicensingService
+
+        $oemKey = $svc.OA3xOriginalProductKey
+
+        [void]$sb.AppendLine("============================================================")
+        [void]$sb.AppendLine("WINDOWS LICENSE REPORT")
+        [void]$sb.AppendLine("============================================================")
         [void]$sb.AppendLine("")
-    
-    if($svc.OA3xOriginalProductKey)
-    {
-        [void]$sb.AppendLine("OEM Key        : $($svc.OA3xOriginalProductKey)")
+
+        [void]$sb.AppendLine("===== SYSTEM =====")
+        [void]$sb.AppendLine("")
+        [void]$sb.AppendLine("Computer Name : $env:COMPUTERNAME")
+        [void]$sb.AppendLine("OS Name       : $($os.Caption)")
+        [void]$sb.AppendLine("Version       : $($os.Version)")
+        [void]$sb.AppendLine("Build         : $($os.BuildNumber)")
+        [void]$sb.AppendLine("")
+
+        if ($lic) {
+
+            [void]$sb.AppendLine("===== PRODUCT =====")
+            [void]$sb.AppendLine("")
+            [void]$sb.AppendLine("Description   : $($lic.Description)")
+            [void]$sb.AppendLine("Partial Key   : $($lic.PartialProductKey)")
+            [void]$sb.AppendLine("")
+
+            [void]$sb.AppendLine("===== LICENSE =====")
+            [void]$sb.AppendLine("")
+            [void]$sb.AppendLine("Status        : $(Convert-LicenseStatus $lic.LicenseStatus)")
+            [void]$sb.AppendLine("Activation ID : $($lic.ID)")
+            [void]$sb.AppendLine("")
+        }
+
+        [void]$sb.AppendLine("===== OEM =====")
+        [void]$sb.AppendLine("")
+
+        if ($oemKey) {
+            [void]$sb.AppendLine("OEM Key       : $oemKey")
+        }
+        else {
+            [void]$sb.AppendLine("OEM Key       : Not Found")
+        }
+
+        [void]$sb.AppendLine("")
+        [void]$sb.AppendLine("===== SERVICES =====")
+        [void]$sb.AppendLine("")
+
+        $sppsvc = Get-Service sppsvc -ErrorAction SilentlyContinue
+        $clipsvc = Get-Service ClipSVC -ErrorAction SilentlyContinue
+
+        if ($sppsvc) {
+            [void]$sb.AppendLine("sppsvc        : $($sppsvc.Status)")
+        }
+
+        if ($clipsvc) {
+            [void]$sb.AppendLine("ClipSVC       : $($clipsvc.Status)")
+        }
+
+        [void]$sb.AppendLine("")
+        [void]$sb.AppendLine("============================================================")
+
+        return $sb.ToString()
+
     }
-    else
-    {
-        [void]$sb.AppendLine("OEM Key        : Not Present")
+    catch {
+        return "Lỗi lấy thông tin Windows: $($_.Exception.Message)"
     }
-    return $sb.ToString()
-}}
+}
 
 $btnCheckWin.Add_Click({
-
     try {
+        Reset-Progress
+        Set-Progress 20
         $txtLicWin.ForeColor = $C.Text
+        $txtLicWin.Clear()
         $txtLicWin.Text = Get-WindowsLicenseReport
+        Set-Progress 100
         Write-Log "Hoàn tất kiểm tra Windows." "OK"
     }
     catch {
@@ -1212,23 +1265,6 @@ $btnCheckWin.Add_Click({
         $txtLicWin.Text = $_.Exception.Message
         Write-Log "Lỗi kiểm tra Windows." "ERR"
     }
-})
-$btnCheckWin.Add_Click({
-    Reset-Progress
-    Set-Progress 10
-    $txtLicWin.Clear()
-    try {
-        $report = Get-WindowsLicenseReport
-        $txtLicWin.ForeColor = $C.Text
-        $txtLicWin.Text = $report
-        Write-Log "Hoàn tất kiểm tra Windows." "OK"
-    }
-    catch {
-        $txtLicWin.ForeColor = $C.Red
-        $txtLicWin.Text = $_.Exception.Message
-        Write-Log "Lỗi kiểm tra Windows." "ERR"
-    }
-    Set-Progress 100
 })
 
 $btnCheckOff.Add_Click({
