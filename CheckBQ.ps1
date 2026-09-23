@@ -1244,7 +1244,7 @@ else
 
 [void]$sb.AppendLine("")
 
-//Kiẻm tra ket=y đây đủ (Bios nếu có)
+//Kiẻm tra key đây đủ (Bios nếu có)
 [void]$sb.AppendLine("===== FULL KEY =====")
 [void]$sb.AppendLine("")
 
