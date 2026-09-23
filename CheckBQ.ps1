@@ -1162,7 +1162,7 @@ $btnShowKey.Add_Click({
         Write-Log "Đã lấy Product Key hiện tại." "OK"
     }
     catch {
-        $txtKeyDisplay.Text = "Không thể lấy Product Key."
+        $txtKeyDisplay.Text = $txtKeyDisplay.Text = $_.Exception.Message
         Write-Log "Lỗi lấy Product Key." "ERR"
     }
 })
