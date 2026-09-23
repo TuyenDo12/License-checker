@@ -1166,7 +1166,7 @@ function Convert-LicenseStatus {
 [void]$sb.AppendLine("")
 }
 function Get-WindowsLicenseReport {
-// Kiểm tra Product key
+# Kiểm tra Product key
 [void]$sb.AppendLine("===== PRODUCT KEY =====")
 [void]$sb.AppendLine("")
 
@@ -1196,7 +1196,7 @@ else
 
 [void]$sb.AppendLine("")
 
-// Kiểm tra KNS
+# Kiểm tra KNS
 try {
     $spp = Get-ItemProperty `
         "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform" `
@@ -1244,7 +1244,7 @@ else
 
 [void]$sb.AppendLine("")
 
-//Kiẻm tra key đây đủ (Bios nếu có)
+# Kiẻm tra key đây đủ (Bios nếu có)
 [void]$sb.AppendLine("===== FULL KEY =====")
 [void]$sb.AppendLine("")
 
@@ -1260,8 +1260,7 @@ else
 }}
 
 
-
-// Chọn nút kiểm tra
+# Chọn nút kiểm tra
 $btnCheckWin.Add_Click({
     try {
         Reset-Progress
