@@ -1136,28 +1136,24 @@ $btnApplyKey=New-StyledButton "Áp Dụng Key" 570 68 180 28 $C.OrangeDark
 $gbKey.Controls.AddRange(@($btnShowKey,$btnCopyKey,$txtNewKey,$btnApplyKey))
 
 # Giải mã Product key
-function Get-WindowsProductKey {
-    $regPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
-    $digitalID = (Get-ItemProperty $regPath).DigitalProductId
-    $chars = "BCDFGHJKMPQRTVWXY2346789"
-    $key = ""
-    $keyStartIndex = 52
-    $keyEndIndex = $keyStartIndex + 15
-    $pid = $digitalID[$keyStartIndex..($keyEndIndex-1)]
-    for ($i = 24; $i -ge 0; $i--) {
-        $cur = 0
-        for ($j = 14; $j -ge 0; $j--) {
-            $cur = ($cur * 256) -bxor $pid[$j]
-            $pid[$j] = [math]::Floor($cur / 24)
-            $cur = $cur % 24
+$btnShowKey.Add_Click({
+    try {
+        $svc = Get-CimInstance SoftwareLicensingService
+        if($svc.OA3xOriginalProductKey)
+        {
+            $txtKeyDisplay.Text = $svc.OA3xOriginalProductKey
         }
-        $key = $chars[$cur] + $key
-        if (($i % 5 -eq 0) -and ($i -ne 0)) {
-            $key = "-" + $key
+        else
+        {
+            $txtKeyDisplay.Text = "Không có OEM Key trong BIOS"
         }
+        Write-Log "Lấy Product Key thành công." "OK"
     }
-    return $key
-}
+    catch {
+        $txtKeyDisplay.Text = $_.Exception.Message
+        Write-Log $_.Exception.Message "ERR"
+    }
+})
 
 # Hiện Product key
 $btnShowKey.Add_Click({
