@@ -1156,18 +1156,6 @@ $btnShowKey.Add_Click({
     }
 })
 
-# Hiện Product key
-$btnShowKey.Add_Click({
-    try {
-        $txtKeyDisplay.Text = Get-WindowsProductKey
-        Write-Log "Đã lấy Product Key hiện tại." "OK"
-    }
-    catch {
-        $txtKeyDisplay.Text = $txtKeyDisplay.Text = $_.Exception.Message
-        Write-Log "Lỗi lấy Product Key." "ERR"
-    }
-})
-
 function Convert-LicenseStatus {
     param([int]$Status)
 
