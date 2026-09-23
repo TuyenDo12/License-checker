@@ -1156,7 +1156,7 @@ $gbLic.Controls.Add($txtLicResult)
 #  1. SỰ KIỆN KIỂM TRA BẢN QUYỀN & LẤY KEY WINDOWS
 # ==============================================================
 $btnCheckWin.Add_Click({
-    $lblLicResultHeader.Text = "KẾT QUẢ KIỂM TRA CHI TIẾT BẢN QUYỀN WINDOWS;"
+    $lblLicResultHeader.Text = "KẾT QUẢ KIỂM TRA CHI TIẾT BẢN QUYỀN WINDOWS:";
     $txtLicResult.ForeColor = $C.Text;
     $txtLicResult.Text = "Đang truy vấn dữ liệu bản quyền và giải mã Key Windows từ Registry/BIOS... Vui lòng chờ!";
     $txtWinKey.Text = "Đang quét...";
@@ -1324,6 +1324,24 @@ $btnCheckOff.Add_Click({
     $timer.Start();
 })
 
+# ==============================================================
+#  3. CÁC NÚT KÍCH HOẠT BẢN QUYỀN MÁY TÍNH (MAS)
+# ==============================================================
+$btnActWin.Add_Click({
+    Write-Log "Đang mở kịch bản kích hoạt Digital License Windows qua MAS..." "INFO";
+    Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"irm https://get.activated.win | iex`"";
+})
+
+$btnActOff.Add_Click({
+    Write-Log "Đang mở kịch bản kích hoạt Office (Ohook) qua MAS..." "INFO";
+    Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"irm https://get.activated.win | iex`"";
+})
+
+$btnMAS.Add_Click({
+    Write-Log "Đang kích hoạt Menu tổng MAS (Microsoft Activation Scripts)..." "INFO";
+    Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"irm https://get.activated.win | iex`"";
+})
+#endregion
 # ==============================================================
 #  3. CÁC NÚT KÍCH HOẠT BẢN QUYỀN MÁY TÍNH (MAS)
 # ==============================================================
