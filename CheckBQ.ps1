@@ -1153,44 +1153,29 @@ $btnApplyKey.Add_Click({
     Start-Process "slmgr.vbs" -ArgumentList "/ato"
     Write-Log "Đã áp dụng key và kích hoạt." "OK"
 })
-function Convert-LicenseStatus {
-    param([int]$Status)
 
-[void]$sb.AppendLine("===== WINDOWS INFORMATION =====")
-[void]$sb.AppendLine("")
-
-[void]$sb.AppendLine("Windows Version    : $($os.Caption)")
-[void]$sb.AppendLine("Build Number       : $($os.BuildNumber)")
-[void]$sb.AppendLine("Edition            : $($lic.Name)")
-[void]$sb.AppendLine("")
-}
 function Get-WindowsLicenseReport {
-
     $sb = New-Object System.Text.StringBuilder
-
     $lic = Get-CimInstance SoftwareLicensingProduct |
            Where-Object {
                 $_.ApplicationID -eq "55c92734-d682-4d71-983e-d6ec3f16059f"
            } |
            Select-Object -First 1
-
     $svc = Get-CimInstance SoftwareLicensingService
-
     # PRODUCT KEY
     [void]$sb.AppendLine("===== PRODUCT KEY =====")
     [void]$sb.AppendLine("")
-
     if($lic -and $lic.PartialProductKey)
     {
         [void]$sb.AppendLine("Partial Product Key : $($lic.PartialProductKey)")
     }
-
-    if($lic -and $lic.PSObject.Properties["ProductKeyChannel"])
+    try {
+    if($lic.ProductKeyChannel)
     {
         [void]$sb.AppendLine("Product Key Channel : $($lic.ProductKeyChannel)")
     }
-
-    [void]$sb.AppendLine("")
+}
+catch {}
 
     # OEM
     [void]$sb.AppendLine("===== OEM LICENSE =====")
