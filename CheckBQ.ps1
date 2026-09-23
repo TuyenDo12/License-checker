@@ -1137,17 +1137,18 @@ $gbKey.Controls.AddRange(@($btnShowKey,$btnCopyKey,$txtNewKey,$btnApplyKey))
 
 # Giải mã Product key
 $btnShowKey.Add_Click({
+
     try {
-        $svc = Get-CimInstance SoftwareLicensingService
-        if($svc.OA3xOriginalProductKey)
+        $key = (Get-CimInstance SoftwareLicensingService).OA3xOriginalProductKey
+        if([string]::IsNullOrWhiteSpace($key))
         {
-            $txtKeyDisplay.Text = $svc.OA3xOriginalProductKey
+            $txtKeyDisplay.Text = "Không tìm thấy Product Key"
         }
         else
         {
-            $txtKeyDisplay.Text = "Không có OEM Key trong BIOS"
+            $txtKeyDisplay.Text = $key
         }
-        Write-Log "Lấy Product Key thành công." "OK"
+        Write-Log "Đã lấy Product Key." "OK"
     }
     catch {
         $txtKeyDisplay.Text = $_.Exception.Message
