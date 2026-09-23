@@ -1152,79 +1152,17 @@ $btnApplyKey.Add_Click({
 })
 
 $btnCheckWin.Add_Click({
-    Write-Log "Đang chạy phân tích chuyên sâu tính chính hãng Windows..." "INFO"
-    Reset-Progress; Set-Progress 30; $txtLicWin.Clear()
-    
-    $isGenuine = $true
-    $cheatMethod = New-Object System.Collections.Generic.List[string]
-    $report = New-Object System.Text.StringBuilder
-
+     Write-Log "Đang phân tích chuyên sâu tính hợp lệ Office..." "INFO"; Reset-Progress; Set-Progress 50; $txtLicOff.Clear()
     try {
-        $p = Get-CimInstance SoftwareLicensingProduct | Where-Object { $_.PartialProductKey -and $_.ApplicationID -eq "55c92734-d682-4d71-983e-d6ec3f16059f" } | Select-Object -First 1
-        if ($p) {
-            $statusMap = @{0="Chưa kích hoạt"; 1="Đã kích hoạt hợp lệ"; 2="OOB Grace"; 3="Gia hạn kích hoạt"; 4="Không chính hãng"}
-            [void]$report.AppendLine("Gói hệ thống: $($p.Description)")
-            [void]$report.AppendLine("Partial Key: $($p.PartialProductKey)")
-            [void]$report.AppendLine("Kênh bản quyền: $($p.ProductKeyChannel)")
-            [void]$report.AppendLine("Trạng thái WMI: $($statusMap[[int]$p.LicenseStatus])")
-
-            $sppPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SoftwareProtectionPlatform"
-            if (Test-Path $sppPath) {
-                $kmsServer = (Get-ItemProperty $sppPath -ErrorAction SilentlyContinue).KeyManagementServiceServer
-                if ($kmsServer) {
-                    [void]$report.AppendLine("Máy chủ KMS đích: $kmsServer")
-                    if ($kmsServer -match "127.0.0.1|localhost|0.0.0.0|::1") {
-                        $isGenuine = $false
-                        $cheatMethod.Add("Giả lập Máy chủ KMS Local (KMS Tools Bypass)")
-                    }
-                }
-            }
-            $kmsServices = @("SECOH-QAD", "KMSEmulator", "KMS-Server", "Service_KMS")
-            foreach ($s in $kmsServices) {
-                if (Get-Service $s -ErrorAction SilentlyContinue) {
-                    $isGenuine = $false
-                    $cheatMethod.Add("Phát hiện Service KMS lậu ngầm chạy nền ($s)")
-                }
-            }
-
-            if ($p.ProductKeyChannel -match "Retail" -and (Get-Service "ClipSVC" -ErrorAction SilentlyContinue).StartType -eq "Disabled") {
-                $isGenuine = $false
-                $cheatMethod.Add("Chặn/Tắt hạ tầng ClipSVC (MAS HWID Script Bypass)")
-            }
-
-            $sppDll = "$env:SystemRoot\System32\sppc.dll"
-            if (Test-Path $sppDll) {
-                $fInfo = Get-Item $sppDll
-                if ($fInfo.VersionInfo.CompanyName -notmatch "Microsoft") {
-                    $isGenuine = $false
-                    $cheatMethod.Add("Tệp xác thực 'sppc.dll' bị can thiệp / Sửa đổi bởi Patches/Loaders")
-                }
-            }
-
-            if (-not $isGenuine) {
-                $txtLicWin.ForeColor = $C.Red
-                [void]$report.AppendLine("`n[XX] CẢNH BÁO: PHÁT HIỆN BẢN QUYỀN GIẢ MẠO!")
-                [void]$report.AppendLine("Phương thức phát hiện lậu:")
-                foreach ($m in $cheatMethod) {
-                    [void]$report.AppendLine("  - $m")
-                }
-                Write-Log "Cảnh báo: Phát hiện Windows bẻ khóa không chính hãng!" "ERR"
-            } else {
-                if ($p.LicenseStatus -eq 1) {
-                    $txtLicWin.ForeColor = $C.LogGreen
-                    [void]$report.AppendLine("`n[OK] CHỨNG NHẬN BẢN QUYỀN CHÍNH HÃNG (GENUINE OS)")
-                    Write-Log "Hệ thống Windows đạt tiêu chuẩn Genuine chính hãng." "OK"
-                } else {
-                    $txtLicWin.ForeColor = $C.LogYellow
-                    [void]$report.AppendLine("`n[>>] Hệ thống chưa hoàn tất cấp phép kích hoạt.")
-                }
-            }
-            $txtLicWin.Text = $report.ToString()
-        } else {
-            $txtLicWin.Text = "Không thể lấy thông tin bản quyền Windows qua WMI."
-        }
-    } catch { 
-        $txtLicWin.Text = "Lỗi phân tích: $($_.Exception.Message)"; Write-Log "Lỗi phân tích Genuine Windows." "ERR"
+        $report = Get-WindowsLicenseReport
+        $txtLicWin.ForeColor = $C.Text
+        $txtLicWin.Text = $report
+        Write-Log "Hoàn tất kiểm tra Windows." "OK"
+    }
+    catch {
+        $txtLicWin.ForeColor = $C.Red
+        $txtLicWin.Text = $_.Exception.Message
+        Write-Log "Lỗi kiểm tra Windows." "ERR"
     }
     Set-Progress 100
 })
