@@ -1153,7 +1153,7 @@ $btnApplyKey.Add_Click({
     Write-Log "Đã áp dụng key và kích hoạt." "OK"
 })
 
-//Hàm kiẻm tra windows
+
 function Convert-LicenseStatus {
     param([int]$Status)
 
@@ -1181,7 +1181,7 @@ if($lic.ProductKeyChannel)
 }
 [void]$sb.AppendLine("")
 
-// Kiểm tra OEM/BIOS
+//Kiểm tra OEM/BIOS
 [void]$sb.AppendLine("===== OEM LICENSE =====")
 [void]$sb.AppendLine("")
 if($svc.OA3xOriginalProductKey)
