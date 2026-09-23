@@ -1198,7 +1198,7 @@ function Get-WindowsLicenseReport {
         [void]$sb.AppendLine("OEM Key        : Not Present")
     }
     return $sb.ToString()
-}
+}}
 
 $btnCheckWin.Add_Click({
 
