@@ -1137,37 +1137,11 @@ $gbKey.Controls.AddRange(@($btnShowKey,$btnCopyKey,$txtNewKey,$btnApplyKey))
 
 # Giải mã Product key
 $btnShowKey.Add_Click({
-
     try {
-
-        $lic = Get-CimInstance SoftwareLicensingProduct |
-               Where-Object {
-                    $_.ApplicationID -eq "55c92734-d682-4d71-983e-d6ec3f16059f" -and
-                    $_.PartialProductKey
-               } |
-               Select-Object -First 1
-
-        if($lic)
-        {
-            $channel = $lic.ProductKeyChannel
-            $partial = $lic.PartialProductKey
-
-            $txtKeyDisplay.Text = "$channel - *****-*****-*****-*****-$partial"
-
-            Write-Log "Đã lấy thông tin bản quyền hiện tại." "OK"
-        }
-        else
-        {
-            $txtKeyDisplay.Text = "Không tìm thấy thông tin bản quyền Windows."
-            Write-Log "Không tìm thấy license Windows." "WARN"
-        }
-    }
-    catch
-    {
-        $txtKeyDisplay.Text = $_.Exception.Message
-        Write-Log $_.Exception.Message "ERR"
-    }
-})
+        $key=(Get-WmiObject SoftwareLicensingService).OA3xOriginalProductKey
+        if (-not $key) { $key="(Không tìm thấy key OEM - máy dùng KMS hoặc Digital License)" }
+        $txtKeyDisplay.Text=$key; Write-Log "Hiển thị Product Key." "OK"
+    } catch { $txtKeyDisplay.Text="Không thể lấy key."; Write-Log "Lỗi lấy Product Key." "ERR" }
 
 function Convert-LicenseStatus {
     param([int]$Status)
