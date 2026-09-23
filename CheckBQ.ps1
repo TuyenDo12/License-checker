@@ -1143,7 +1143,16 @@ $btnShowKey.Add_Click({
         $txtKeyDisplay.Text=$key; Write-Log "Hiển thị Product Key." "OK"
     } catch { $txtKeyDisplay.Text="Không thể lấy key."; Write-Log "Lỗi lấy Product Key." "ERR" }
 })
-
+$btnCopyKey.Add_Click({
+    if ($txtKeyDisplay.Text) { [System.Windows.Forms.Clipboard]::SetText($txtKeyDisplay.Text); Write-Log "Đã sao chép Product Key." "OK" }
+})
+$btnApplyKey.Add_Click({
+    $k=$txtNewKey.Text.Trim()
+    if ($k -notmatch '^\w{5}-\w{5}-\w{5}-\w{5}-\w{5}$') { Write-Log "Key không đúng định dạng XXXXX-XXXXX-XXXXX-XXXXX-XXXXX" "WARN"; return }
+    Start-Process "slmgr.vbs" -ArgumentList "/ipk $k" -Wait
+    Start-Process "slmgr.vbs" -ArgumentList "/ato"
+    Write-Log "Đã áp dụng key và kích hoạt." "OK"
+})
 function Convert-LicenseStatus {
     param([int]$Status)
 
