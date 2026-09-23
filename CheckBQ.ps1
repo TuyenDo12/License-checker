@@ -1142,6 +1142,7 @@ $btnShowKey.Add_Click({
         if (-not $key) { $key="(Không tìm thấy key OEM - máy dùng KMS hoặc Digital License)" }
         $txtKeyDisplay.Text=$key; Write-Log "Hiển thị Product Key." "OK"
     } catch { $txtKeyDisplay.Text="Không thể lấy key."; Write-Log "Lỗi lấy Product Key." "ERR" }
+})
 
 function Convert-LicenseStatus {
     param([int]$Status)
