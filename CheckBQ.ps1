@@ -1139,11 +1139,14 @@ $gbKey.Controls.AddRange(@($btnShowKey,$btnCopyKey,$txtNewKey,$btnApplyKey))
 $btnShowKey.Add_Click({
     try {
         $lic = Get-CimInstance SoftwareLicensingProduct |
-               Where-Object {
-                    $_.ApplicationID -eq "55c92734-d682-4d71-983e-d6ec3f16059f" -and
-                    $_.PartialProductKey
-               } |
-               Select-Object -First 1
+       Where-Object {
+           $_.ApplicationID -eq "55c92734-d682-4d71-983e-d6ec3f16059f" -and
+           $_.PartialProductKey
+       } |
+       Select-Object -First 1
+
+$lic.ProductKeyChannel
+$lic.PartialProductKey
         if($lic)
         {
             $txtKeyDisplay.Text =
